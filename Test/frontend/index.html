@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD Alumnos</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+<div class="container mt-5">
+
+    <h2 class="mb-4 text-center">CRUD Alumnos</h2>
+
+    <!-- FORMULARIO -->
+    <div class="card p-4 shadow-sm mb-4">
+
+        <input type="hidden" id="alumnoId">
+
+        <div class="row">
+
+            <div class="col-md-4 mb-3">
+                <label>Nombre</label>
+                <input type="text" id="nombre" class="form-control">
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label>Matrícula</label>
+                <input type="text" id="matricula" class="form-control">
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label>Edad</label>
+                <input type="number" id="edad" class="form-control">
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label>Sexo</label>
+                <select id="sexo" class="form-control">
+                    <option value="M">Masculino</option>
+                    <option value="F">Femenino</option>
+                </select>
+            </div>
+
+            <div class="col-md-8 mb-3">
+                <label>Carrera</label>
+                <input type="text" id="carrera" class="form-control">
+            </div>
+
+        </div>
+
+        <button class="btn btn-primary" onclick="guardarAlumno()">
+            Guardar
+        </button>
+
+    </div>
+
+    <!-- TABLA -->
+    <div class="card p-4 shadow-sm">
+
+        <table class="table table-bordered table-hover">
+
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Matrícula</th>
+                    <th>Edad</th>
+                    <th>Sexo</th>
+                    <th>Carrera</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody id="tablaAlumnos">
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<script>
+
+const API_URL = "http://127.0.0.1:8000/api/alumnos/";
+
+
+// ============================
+// OBTENER ALUMNOS
+// ============================
+
+async function obtenerAlumnos() {
+
+    const response = await fetch(API_URL);
+    const data = await response.json();
+
+    let tabla = document.getElementById("tablaAlumnos");
+    tabla.innerHTML = "";
+
+    data.forEach(alumno => {
+
+        tabla.innerHTML += `
+            <tr>
+                <td>${alumno.id}</td>
+                <td>${alumno.nombre}</td>
+                <td>${alumno.matricula}</td>
+                <td>${alumno.edad}</td>
+                <td>${alumno.sexo}</td>
+                <td>${alumno.carrera}</td>
+
+                <td>
+
+                    <button class="btn btn-warning btn-sm"
+                        onclick="editarAlumno(${alumno.id},
+                        '${alumno.nombre}',
+                        '${alumno.matricula}',
+                        ${alumno.edad},
+                        '${alumno.sexo}',
+                        '${alumno.carrera}')">
+
+                        Editar
+                    </button>
+
+                    <button class="btn btn-danger btn-sm"
+                        onclick="eliminarAlumno(${alumno.id})">
+
+                        Eliminar
+                    </button>
+
+                </td>
+            </tr>
+        `;
+    });
+}
+
+
+// ============================
+// GUARDAR / EDITAR
+// ============================
+
+async function guardarAlumno() {
+
+    const id = document.getElementById("alumnoId").value;
+
+    const alumno = {
+
+        nombre: document.getElementById("nombre").value,
+        matricula: document.getElementById("matricula").value,
+        edad: document.getElementById("edad").value,
+        sexo: document.getElementById("sexo").value,
+        carrera: document.getElementById("carrera").value
+    };
+
+    // EDITAR
+    if(id){
+
+        await fetch(API_URL + id + "/", {
+
+            method: "PUT",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify(alumno)
+        });
+
+    }
+
+    // CREAR
+    else{
+
+        await fetch(API_URL, {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify(alumno)
+        });
+    }
+
+    limpiarFormulario();
+    obtenerAlumnos();
+}
+
+
+// ============================
+// EDITAR
+// ============================
+
+function editarAlumno(id, nombre, matricula, edad, sexo, carrera){
+
+    document.getElementById("alumnoId").value = id;
+    document.getElementById("nombre").value = nombre;
+    document.getElementById("matricula").value = matricula;
+    document.getElementById("edad").value = edad;
+    document.getElementById("sexo").value = sexo;
+    document.getElementById("carrera").value = carrera;
+}
+
+
+// ============================
+// ELIMINAR
+// ============================
+
+async function eliminarAlumno(id){
+
+    if(confirm("¿Deseas eliminar este alumno?")){
+
+        await fetch(API_URL + id + "/", {
+
+            method: "DELETE"
+        });
+
+        obtenerAlumnos();
+    }
+}
+
+
+// ============================
+// LIMPIAR FORM
+// ============================
+
+function limpiarFormulario(){
+
+    document.getElementById("alumnoId").value = "";
+    document.getElementById("nombre").value = "";
+    document.getElementById("matricula").value = "";
+    document.getElementById("edad").value = "";
+    document.getElementById("sexo").value = "M";
+    document.getElementById("carrera").value = "";
+}
+
+
+// ============================
+// INICIO
+// ============================
+
+obtenerAlumnos();
+
+</script>
+
+</body>
+</html>
